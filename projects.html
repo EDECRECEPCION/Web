@@ -1,0 +1,33 @@
+const myText = <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyectos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html">Inicio</a>
+        <a href="projects.html" class="active">Proyectos</a>
+        <a href="resume.html">Currículum</a>
+    </nav>
+
+    <main class="container">
+        <h2>Proyectos Destacados</h2>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-top: 20px;">
+            <h3 style="color: #007bff;">Panel de Control de Aulas</h3>
+            <p>Una aplicación web interactiva Single-Page (SPA) diseñada para la gestión centralizada de recursos en instalaciones educativas.</p>
+            
+            <h4>Características Clave:</h4>
+            <ul>
+                <li><strong>Sistema de Autenticación:</strong> Flujo de registro e inicio de sesión para alumnos validado a través de matrícula, simulando una base de datos con <code>localStorage</code> y manejo de sesión activa con <code>sessionStorage</code>.</li>
+                <li><strong>Generación Dinámica de Interfaz:</strong> Creación automatizada mediante JavaScript de tarjetas de control para 25 áreas distintas (21 Salones, SUM, Salas de Cómputo y Sala de Maestros).</li>
+                <li><strong>Panel de Hardware Simulado:</strong> Botones de acción integrados para el control de Clima (encendido, apagado, cambio de temperatura) y gestión de TV (encendido/apagado, solicitud de asistencia HDMI).</li>
+                <li><strong>Buzón de Sugerencias Inteligente:</strong> Formulario interactivo que incluye un filtro de moderación de lenguaje (array de palabras no permitidas) y un algoritmo que limita el uso a 3 sugerencias diarias por alumno según la fecha del sistema.</li>
+            </ul>
+        </div>
+    </main>
+</body>
+</html>
