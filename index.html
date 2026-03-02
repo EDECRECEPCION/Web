@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Control EDEC</title>
+    <style>
+        :root {
+            --blue: #007bff;
+            --red: #dc3545;
+            --green: #28a745;
+            --white: #ffffff;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .hidden { display: none !important; }
+        
+        /* Interfaz de Bienvenida y Login */
+        .auth-card {
+            max-width: 450px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .auth-card h1 { color: #333; margin-bottom: 10px; }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .auth-form input {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .btn-main {
+            padding: 12px;
+            background-color: var(--blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* Panel de Control */
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .room-card {
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .room-card h3 { margin-top: 0; text-align: center; }
+        
+        /* Estilo de botones solicitados */
+        .control-btn {
+            width: 100%;
+            padding: 10px;
+            margin: 4px 0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--white); /* Letras blancas */
+        }
+        .bg-blue { background-color: var(--blue); }
+        .bg-red { background-color: var(--red); }
+        .bg-green { background-color: var(--green); }
+
+        /* Sugerencias */
+        .sug-section {
+            margin-top: 40px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="auth-section" class="auth-card">
+        <h1>¡Bienvenid@!</h1>
+        <p>Registrate o Inicia Sesión con tu cuenta</p>
+        
+        <div id="auth-inputs" class="auth-form">
+            <input type="email" id="f-email" placeholder="Correo Electrónico">
+            <input type="text" id="f-matricula" placeholder="Matrícula">
+            <input type="password" id="f-pass" placeholder="Contraseña">
+            
+            <div id="login-controls">
+                <button class="btn-main" onclick="handleAuth('login')">Iniciar Sesión</button>
+                <p style="font-size: 14px; margin-top: 10px;">¿No tienes cuenta? <a href="#" onclick="toggleMode(true)">Regístrate</a></p>
+            </div>
+            
+            <div id="register-controls" class="hidden">
+                <button class="btn-main" style="background-color: var(--green);" onclick="handleAuth('register')">Crear Cuenta</button>
+                <p style="font-size: 14px; margin-top: 10px;">¿Ya tienes cuenta? <a href="#" onclick="toggleMode(false)">Inicia Sesión</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-section" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 id="user-display">Panel de Control</h2>
+            <button onclick="location.reload()" style="cursor:pointer;">Cerrar Sesión</button>
+        </div>
+
+        <div class="rooms-grid" id="rooms-container"></div>
+
+        <div class="sug-section">
+            <h3>Sugerencias</h3>
+            <textarea id="sug-input" placeholder="Escribe tu sugerencia aquí..."></textarea>
+            <button class="control-btn bg-blue" style="width: 200px;" onclick="sendSug()">Enviar Sugerencia</button>
+            <p id="sug-status" style="text-align:center; font-weight:bold;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuración de Salones basada en tu script
+    const rooms = [];
+    for(let i=1; i<=21; i++) rooms.push(`Salón ${i}`);
+    rooms.push("SUM", "Computo 1", "Computo 2", "Sala Maestros");
+
+    const badWords = ["pendejo", "idiota", "estupido", "mierda", "cabron", "puto", "chinga"]; // Moderador
+
+    function toggleMode(isReg) {
+        document.getElementById('login-controls').classList.toggle('hidden', isReg);
+        document.getElementById('register-controls').classList.toggle('hidden', !isReg);
+    }
+
+    async function handleAuth(type) {
+        const email = document.getElementById('f-email').value;
+        const mat = document.getElementById('f-matricula').value;
+        const pass = document.getElementById('f-pass').value;
+
+        if(!email || !mat || !pass) return alert("Por favor completa todos los campos");
+
+        if(type === 'register') {
+            const code = prompt("Ingresa el código de verificación enviado (Simulación: 1234)");
+            if(code !== "1234") return alert("Código incorrecto");
+
+            // Notificación silenciosa de registro (Matrícula y Correo únicamente)
+            // Reemplaza 'mbdaeeol' por el que obtengas en formspree.io
+            fetch('https://formspree.io/f/mbdaeeol', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nueva_cuenta: email, matricula: mat })
+            });
+
+            const users = JSON.parse(localStorage.getItem('users_db')) || {};
+            users[mat] = { email, pass };
+            localStorage.setItem('users_db', JSON.stringify(users));
+            alert("Cuenta creada con éxito. Ahora inicia sesión.");
+            toggleMode(false);
+        } else {
+            const users = JSON.parse(localStorage.getItem('users_db')) || {};
+            if(users[mat] && users[mat].pass === pass) {
+                showApp(mat);
+            } else {
+                alert("Datos incorrectos");
+            }
+        }
+    }
+
+    function showApp(mat) {
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app-section').classList.remove('hidden');
+        document.getElementById('user-display').innerText = `Bienvenido: ${mat}`;
+        renderRooms();
+    }
+
+    function renderRooms() {
+        const container = document.getElementById('rooms-container');
+        container.innerHTML = rooms.map(name => `
+            <div class="room-card">
+                <h3>${name}</h3>
+                <button class="control-btn bg-blue" onclick="act('${name}','Clima ON')">Clima: Encender</button>
+                <button class="control-btn bg-red" onclick="act('${name}','Clima OFF')">Clima: Apagar</button>
+                <button class="control-btn bg-green" onclick="act('${name}','Temp')">Cambiar Temperatura</button>
+                <button class="control-btn bg-blue" onclick="act('${name}','TV ON/OFF')">TV: Encender/Apagar</button>
+                <button class="control-btn bg-red" onclick="act('${name}','HDMI')">Asistencia HDMI</button>
+            </div>
+        `).join('');
+    }
+
+    function act(r, a) { alert(`Acción en ${r}: ${a}`); }
+
+    function sendSug() {
+        const text = document.getElementById('sug-input').value.toLowerCase();
+        const status = document.getElementById('sug-status');
+        
+        // Moderador de palabras
+        if(badWords.some(w => text.includes(w))) {
+            status.innerText = "Error: Contenido inapropiado detectado.";
+            status.style.color = "red";
+            return;
+        }
+
+        // Límite de 3 usos por día
+        const today = new Date().toLocaleDateString();
+        let count = parseInt(localStorage.getItem(`sug_${today}`)) || 0;
+
+        if(count >= 3) {
+            status.innerText = "Límite diario alcanzado (3/3).";
+            status.style.color = "red";
+        } else {
+            localStorage.setItem(`sug_${today}`, count + 1);
+            status.innerText = `Sugerencia enviada correctamente (${count + 1}/3).`;
+            status.style.color = "green";
+            document.getElementById('sug-input').value = "";
+        }
+    }
+</script>
+
+</body>
+</html>
